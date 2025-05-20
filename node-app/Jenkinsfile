@@ -1,0 +1,56 @@
+pipeline {
+    agent any
+
+    environment {
+        SONARQUBE = 'sonarqube'
+        IMAGE_NAME = 'node-app'
+        IMAGE_TAG = "v${env.BUILD_NUMBER}"
+        NEXUS_REPO = 'nexus:8082'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE}") {
+                    sh 'sonar-scanner'
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Security Scan - Trivy') {
+            steps {
+                sh "trivy image --exit-code 1 --severity HIGH,CRITICAL ${IMAGE_NAME}:${IMAGE_TAG}"
+            }
+        }
+
+        stage('Push to Nexus') {
+            steps {
+                script {
+                    sh '''
+                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${NEXUS_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
+                        echo 'admin:admin123' | docker login ${NEXUS_REPO} --username admin --password-stdin
+                        docker push ${NEXUS_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
+                    '''
+                }
+            }
+        }
+    }
+}

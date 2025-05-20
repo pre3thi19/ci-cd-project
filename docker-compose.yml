@@ -1,0 +1,79 @@
+# version: '3.8'
+
+# services:
+#   jenkins:
+#     image: jenkins/jenkins:lts
+#     user: root
+#     ports:
+#       - "8080:8080"
+#     volumes:
+#       - jenkins_home:/var/jenkins_home
+#       - /var/run/docker.sock:/var/run/docker.sock
+#     networks:
+#       - cicd
+
+#   sonarqube:
+#     image: sonarqube:community
+#     ports:
+#       - "9000:9000"
+#     environment:
+#       SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+#     networks:
+#       - cicd
+
+#   nexus:
+#     image: sonatype/nexus3
+#     ports:
+#       - "8082:8081"
+#     volumes:
+#       - nexus-data:/nexus-data
+#     networks:
+#       - cicd
+
+# volumes:
+#   jenkins_home:
+#   nexus-data:
+
+# networks:
+#   cicd:
+
+
+
+version: '3.8'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:lts
+    user: root
+    ports:
+      - "8080:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - cicd
+
+  sonarqube:
+    image: sonarqube:community
+    ports:
+      - "9000:9000"
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    networks:
+      - cicd
+
+  nexus:
+    image: sonatype/nexus3
+    ports:
+      - "8081:8081"   # Changed from 8082:8081 to standard mapping
+    volumes:
+      - nexus-data:/nexus-data
+    networks:
+      - cicd
+
+volumes:
+  jenkins_home:
+  nexus-data:
+
+networks:
+  cicd:
