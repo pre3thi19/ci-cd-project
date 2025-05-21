@@ -59,14 +59,19 @@
 // }
 
 pipeline {
-  agent any
+  agent {
+    docker {
+      image 'node:18' // Change to a custom image later if needed
+    }
+  }
 
   environment {
-    SONAR_TOKEN = credentials('sonar-token') // This must match the ID in Jenkins credentials
+    SONARQUBE = 'sonarqube'             // Match Jenkins global config name
+    SONAR_TOKEN = credentials('sonar-token')  // Jenkins Credentials ID
   }
 
   tools {
-    sonarQubeScanner 'SonarScanner' // This must match the name under Global Tool Configuration
+    sonarQubeScanner 'SonarScanner'     // Must match Global Tool name in Jenkins
   }
 
   stages {
@@ -76,10 +81,23 @@ pipeline {
       }
     }
 
+    stage('Install Dependencies') {
+      steps {
+        sh 'npm install'
+      }
+    }
+
     stage('SonarQube Analysis') {
       steps {
-        withSonarQubeEnv('sonarqube') { // This must match the name under "Configure System" > SonarQube Servers
-          sh 'sonar-scanner -Dsonar.login=$SONAR_TOKEN'
+        withSonarQubeEnv("${SONARQUBE}") {
+          sh """
+            sonar-scanner \
+              -Dsonar.projectKey=node-app \
+              -Dsonar.projectName='Node App' \
+              -Dsonar.sources=. \
+              -Dsonar.exclusions=node_modules/**,Dockerfile,Jenkinsfile \
+              -Dsonar.login=$SONAR_TOKEN
+          """
         }
       }
     }
