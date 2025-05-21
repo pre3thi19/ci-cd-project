@@ -95,4 +95,14 @@ pipeline {
               export PATH=$PWD/sonar-scanner-*/bin:$PATH
               sonar-scanner \
                 -Dsonar.projectKey=node-app \
-                -Dsonar.projectName
+                -Dsonar.projectName="Node App" \
+                -Dsonar.sources=. \
+                -Dsonar.exclusions=node_modules/**,Dockerfile,Jenkinsfile \
+                -Dsonar.login=$SONAR_TOKEN
+            '''
+          }
+        }
+      }
+    }
+  }
+}
