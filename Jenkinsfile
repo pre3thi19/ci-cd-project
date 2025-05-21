@@ -61,13 +61,13 @@
 pipeline {
   agent {
     docker {
-      image 'node:18'
+      image 'mcr.microsoft.com/devcontainers/javascript-node:18'
     }
   }
 
   environment {
-    SONARQUBE = 'sonarqube' // name configured under Jenkins > Configure System > SonarQube servers
-    SONAR_TOKEN = credentials('sonar-token') // your SonarQube token stored in Jenkins credentials
+    SONARQUBE = 'sonarqube'
+    SONAR_TOKEN = credentials('sonar-token')
   }
 
   stages {
@@ -91,7 +91,7 @@ pipeline {
           withSonarQubeEnv("${SONARQUBE}") {
             sh '''
               curl -Lo sonar.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
-              unzip sonar.zip
+              unzip -o sonar.zip
               export PATH=$PWD/sonar-scanner-*/bin:$PATH
               sonar-scanner \
                 -Dsonar.projectKey=node-app \
