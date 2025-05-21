@@ -61,17 +61,13 @@
 pipeline {
   agent {
     docker {
-      image 'node:18' // Change to a custom image later if needed
+      image 'node:18' // Use a custom image later if needed
     }
   }
 
   environment {
-    SONARQUBE = 'sonarqube'             // Match Jenkins global config name
-    SONAR_TOKEN = credentials('sonar-token')  // Jenkins Credentials ID
-  }
-
-  tools {
-    sonarQubeScanner 'SonarScanner'     // Must match Global Tool name in Jenkins
+    SONARQUBE = 'sonarqube'                  // Jenkins global SonarQube config name
+    SONAR_TOKEN = credentials('sonar-token') // Jenkins secret text credentials ID
   }
 
   stages {
@@ -90,14 +86,17 @@ pipeline {
     stage('SonarQube Analysis') {
       steps {
         withSonarQubeEnv("${SONARQUBE}") {
-          sh """
+          sh '''
+            curl -Lo sonar.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+            unzip sonar.zip
+            export PATH=$PWD/sonar-scanner-*/bin:$PATH
             sonar-scanner \
               -Dsonar.projectKey=node-app \
-              -Dsonar.projectName='Node App' \
+              -Dsonar.projectName="Node App" \
               -Dsonar.sources=. \
               -Dsonar.exclusions=node_modules/**,Dockerfile,Jenkinsfile \
               -Dsonar.login=$SONAR_TOKEN
-          """
+          '''
         }
       }
     }
