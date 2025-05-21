@@ -1,4 +1,7 @@
-# version: '3.8'
+
+
+
+version: '3.8'
 
 # services:
 #   jenkins:
@@ -12,38 +15,9 @@
 #     networks:
 #       - cicd
 
-#   sonarqube:
-#     image: sonarqube:community
-#     ports:
-#       - "9000:9000"
-#     environment:
-#       SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
-#     networks:
-#       - cicd
-
-#   nexus:
-#     image: sonatype/nexus3
-#     ports:
-#       - "8082:8081"
-#     volumes:
-#       - nexus-data:/nexus-data
-#     networks:
-#       - cicd
-
-# volumes:
-#   jenkins_home:
-#   nexus-data:
-
-# networks:
-#   cicd:
-
-
-
-version: '3.8'
-
 services:
   jenkins:
-    image: jenkins/jenkins:lts
+    image: jenkins-with-docker-cli
     user: root
     ports:
       - "8080:8080"
@@ -52,6 +26,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - cicd
+
+    
+
 
   sonarqube:
     image: sonarqube:community
@@ -65,9 +42,11 @@ services:
   nexus:
     image: sonatype/nexus3
     ports:
-      - "8081:8081"   # Changed from 8082:8081 to standard mapping
+      - "8082:8081"  # Access Nexus via http://localhost:8082
     volumes:
       - nexus-data:/nexus-data
+    environment:
+      - INSTALL4J_ADD_VM_PARAMS=-Xms512m -Xmx1024m
     networks:
       - cicd
 
