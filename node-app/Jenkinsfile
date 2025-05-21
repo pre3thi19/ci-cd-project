@@ -1,56 +1,87 @@
+// pipeline {
+//     agent any
+
+//     environment {
+//         SONARQUBE = 'sonarqube'   // Must match the SonarQube server name in Jenkins
+//         IMAGE_NAME = 'node-app'
+//         IMAGE_TAG = "v${env.BUILD_NUMBER}"
+//         NEXUS_REPO = 'nexus:8082'
+//     }
+
+//     stages {
+//         stages {
+//     stage('Checkout') {
+//       steps {
+//         git url: 'https://github.com/pre3thi19/ci-cd-project.git', branch: 'main' // Replace accordingly
+//       }
+//     }
+
+//         stage('Install') {
+//             steps {
+//                 sh 'npm install'
+//             }
+//         }
+
+//         stage('SonarQube Analysis') {
+//             steps {
+//                 withSonarQubeEnv("${SONARQUBE}") {
+//                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+//                         sh 'sonar-scanner -Dsonar.login=$SONAR_TOKEN'
+//                     }
+//                 }
+//             }
+//         }
+
+//         stage('Docker Build') {
+//             steps {
+//                 sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+//             }
+//         }
+
+//         stage('Security Scan - Trivy') {
+//             steps {
+//                 sh "trivy image --exit-code 1 --severity HIGH,CRITICAL ${IMAGE_NAME}:${IMAGE_TAG}"
+//             }
+//         }
+
+//         stage('Push to Nexus') {
+//             steps {
+//                 script {
+//                     sh '''
+//                         docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${NEXUS_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
+//                         echo 'admin:admin123' | docker login ${NEXUS_REPO} --username admin --password-stdin
+//                         docker push ${NEXUS_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
+//                     '''
+//                 }
+//             }
+//         }
+//     }
+// }
+
 pipeline {
-    agent any
+  agent any
 
-    environment {
-        SONARQUBE = 'sonarqube'
-        IMAGE_NAME = 'node-app'
-        IMAGE_TAG = "v${env.BUILD_NUMBER}"
-        NEXUS_REPO = 'nexus:8082'
+  environment {
+    SONAR_TOKEN = credentials('sonar-token') // This must match the ID in Jenkins credentials
+  }
+
+  tools {
+    sonarQubeScanner 'SonarScanner' // This must match the name under Global Tool Configuration
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        git url: 'https://github.com/pre3thi19/ci-cd-project.git', branch: 'main'
+      }
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
+    stage('SonarQube Analysis') {
+      steps {
+        withSonarQubeEnv('sonarqube') { // This must match the name under "Configure System" > SonarQube Servers
+          sh 'sonar-scanner -Dsonar.login=$SONAR_TOKEN'
         }
-
-        stage('Install') {
-            steps {
-                sh 'npm install'
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv("${SONARQUBE}") {
-                    sh 'sonar-scanner'
-                }
-            }
-        }
-
-        stage('Docker Build') {
-            steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-            }
-        }
-
-        stage('Security Scan - Trivy') {
-            steps {
-                sh "trivy image --exit-code 1 --severity HIGH,CRITICAL ${IMAGE_NAME}:${IMAGE_TAG}"
-            }
-        }
-
-        stage('Push to Nexus') {
-            steps {
-                script {
-                    sh '''
-                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${NEXUS_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
-                        echo 'admin:admin123' | docker login ${NEXUS_REPO} --username admin --password-stdin
-                        docker push ${NEXUS_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
-                    '''
-                }
-            }
-        }
+      }
     }
+  }
 }
