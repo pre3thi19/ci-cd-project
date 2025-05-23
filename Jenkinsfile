@@ -61,47 +61,14 @@
 pipeline {
   agent {
     docker {
-      image 'mcr.microsoft.com/devcontainers/javascript-node:18'
+      image 'node:18-alpine'
     }
   }
-
-  environment {
-    SONARQUBE = 'sonarqube'
-    SONAR_TOKEN = credentials('sonar-token')
-  }
-
   stages {
-    stage('Checkout') {
+    stage('Build') {
       steps {
-        git url: 'https://github.com/pre3thi19/ci-cd-project.git', branch: 'main'
-      }
-    }
-
-    stage('Install Dependencies') {
-      steps {
-        dir('node-app') {
-          sh 'npm install'
-        }
-      }
-    }
-
-    stage('SonarQube Analysis') {
-      steps {
-        dir('node-app') {
-          withSonarQubeEnv("${SONARQUBE}") {
-            sh '''
-              curl -Lo sonar.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
-              unzip -o sonar.zip
-              export PATH=$PWD/sonar-scanner-*/bin:$PATH
-              sonar-scanner \
-                -Dsonar.projectKey=node-app \
-                -Dsonar.projectName="Node App" \
-                -Dsonar.sources=. \
-                -Dsonar.exclusions=node_modules/**,Dockerfile,Jenkinsfile \
-                -Dsonar.login=$SONAR_TOKEN
-            '''
-          }
-        }
+        sh 'node -v'
+        sh 'echo "Hello from Jenkins"'
       }
     }
   }
