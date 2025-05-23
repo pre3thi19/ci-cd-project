@@ -59,17 +59,34 @@
 // }
 
 pipeline {
-  agent {
-    docker {
-      image 'node:18-alpine'
+    agent {
+        docker {
+            image 'node:18-alpine'
+        }
     }
-  }
-  stages {
-    stage('Build') {
-      steps {
-        sh 'node -v'
-        sh 'echo "Hello from Jenkins"'
-      }
+
+    environment {
+        SONAR_SCANNER_HOME = '/opt/sonar-scanner'
+        PATH = "${SONAR_SCANNER_HOME}/bin:${PATH}"
     }
-  }
+
+    stages {
+        stage('Build') {
+            steps {
+                sh 'node -v'
+                sh 'echo "Hello from Jenkins"'
+            }
+        }
+
+      stage('SonarQube Analysis') {
+    steps {
+        withSonarQubeEnv('SonarQube Servers') {
+            sh 'sonar-scanner'
+        }
+    }
 }
+
+    }
+}
+
+
