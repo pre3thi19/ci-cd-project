@@ -78,13 +78,17 @@ pipeline {
             }
         }
 
-      stage('SonarQube Analysis') {
+    stage('SonarQube Analysis') {
     steps {
         withSonarQubeEnv('SonarQube Servers') {
-            sh 'sonar-scanner'
+            script {
+                def scannerHome = tool 'SonarScanner'
+                sh "${scannerHome}/bin/sonar-scanner"
+            }
         }
     }
 }
+
 
     }
 }
